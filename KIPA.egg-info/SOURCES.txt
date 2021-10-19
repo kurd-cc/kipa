@@ -1,0 +1,13 @@
+LICENSE
+README.md
+setup.py
+KIPA.egg-info/PKG-INFO
+KIPA.egg-info/SOURCES.txt
+KIPA.egg-info/dependency_links.txt
+KIPA.egg-info/top_level.txt
+kipa/__init__.py
+kipa/kipa.py
+kipa.egg-info/PKG-INFO
+kipa.egg-info/SOURCES.txt
+kipa.egg-info/dependency_links.txt
+kipa.egg-info/top_level.txt

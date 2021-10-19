@@ -28,23 +28,26 @@ pip install kipa
 #### Usages: 
 - To get only the translated text (IPA phonetics text):
 ```python
-from kipa import kipa 
+import kipa 
 
 ipa_text = kipa.translate_text('SOME_KURDISH_TEXT')
 ```
 
 - To get an object of the result: 
 ```python
-from kipa import kipa 
+import kipa 
 
 ipa_text = kipa.get_ipa('SOME_KURDISH_TEXT')
 ```
 
 - To convert a number to its Kurdish text:
 ```python
-from kipa import n2t
+import kipa
 
-number_in_text = n2t.convert(382442)
+number_in_text = kipa.convert(382442)
+```
+```text
+sêsed û heştê û du hezar û çarsed û çil û du
 ```
 
 <br>

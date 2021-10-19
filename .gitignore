@@ -1,1 +1,4 @@
 venv/
+dist/
+KIPA.egg-info/
+build/
