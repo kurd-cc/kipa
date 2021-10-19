@@ -1,4 +1,4 @@
-"""A library to convert Kurdish (Kurmanji) texts to phonetics"""
+"""A library to convert Kurdish (Kurmanji) texts to IPA phonetics"""
 __version__ = 0.1
 
 import n2t
@@ -164,3 +164,4 @@ def get_ipa(text):
 def translate_text(text):
     return get_ipa(text)['resulted_ipa']
 
+print(translate_text("Dema we baş be! Ev kîpa ye,\n û ew 1ekemîn mekte be ye ji bo vê mijarê!"))
