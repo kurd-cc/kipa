@@ -11,3 +11,4 @@ dynamic = ["version", "description"]
 
 [project.urls]
 Home = "https://github.com/kurd-cc/kipa"
+Source = "https://github.com/kurd-cc/kipa"
