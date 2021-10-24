@@ -385,7 +385,7 @@ def convert_ipa_word(word):
     second_possibility = word
 
     # Other alternatives for l and h
-    if 'l' in word or 'h' in word:
+    if 'l' in word or 'h' in word or 'r' in word:
         reasons.append('Different accents or positions')
 
     # Replace ng
@@ -397,7 +397,7 @@ def convert_ipa_word(word):
     for letter in word:
         if letter == 'ŋ' or letter == ' ' or letter == '|':
             continue
-        elif letter == 'h' or letter == 'l':
+        elif letter == 'h' or letter == 'l' or letter == 'r':
             indices = [i for i, x in enumerate(kurdish_letters) if x == letter]
             second_possibility = second_possibility.replace(letter, kurdish_ipa[indices[1]])
             first_possibility = first_possibility.replace(letter, kurdish_ipa[indices[0]])
