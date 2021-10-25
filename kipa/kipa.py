@@ -1,5 +1,5 @@
 import re
-
+from kwiki import kwiki
 
 def _clear_text(text, delimiter=""):
     kurdish_letters = "ABCÇDEÊFGHIÎJKLMNOPQRSŞTUÛVWXYZabcçdeêfghiîjklmnopqrsştuûvwxyz |0123456789\n"
@@ -373,6 +373,11 @@ kurdish_letters = [
 def convert_ipa_word(word):
     # To lower case always
     word = word.lower()
+    try:
+        ipa = kwiki.get_sounds(word)['sounds'][0]['ipa'].replace('/', '').strip()
+        return {word: word, 'first_ipa': ipa, 'second_ipa': '', 'reasons': []}
+    except Exception as ex:
+        pass
     reasons = []
 
     # Replace numbers
