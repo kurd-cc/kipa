@@ -94,7 +94,7 @@ kurdish_letters = [
 
 
 def _clear_text(text, delimiter=""):
-    reg = "[^ABCÇDEÊFGHIÎJKLMNOPQRSŞTUÛVWXYZabcçdeêfghiîjklmnopqrsştuûvwxyz |0123456789\n]+"
+    reg = "[^ABCÇDEÊFGHIÎJKLMNOPQRSŞTUÛVWXYZabcçdeêfghiîjklmnopqrsştuûvwxyz |0123456789\n./-]+"
     text = re.sub(reg, '*', text).rstrip()
     return delimiter.join(text.split('*'))
 
@@ -115,6 +115,7 @@ def _strip_spaces(term):
 def process_text(text):
     result = ["|"]
     terms = _prepare_text(text)
+
     for term in terms:
         result.append(term + " |\n")
     return _clear_text(' '.join(result))
@@ -597,6 +598,7 @@ def convert_ipa_text(text):
     for term in terms_list:
         current_list = []
         for word in term.split(" "):
+
             current_res = convert_ipa_word(word)
             current_list.append(current_res)
         all_list.append(current_list)
