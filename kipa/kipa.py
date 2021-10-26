@@ -1,15 +1,109 @@
+import itertools
 import re
+import math
 from kwiki import kwiki
+
+kurdish_vowels = [
+    'a',
+    'e',
+    'ê',
+    'i',
+    'î',
+    'o',
+    'u',
+    'û'
+]
+
+kurdish_ipa = [
+    "b",
+    "dʒ",
+    "tʃ",
+    "d",
+    "f",
+    "ɡ",
+    "ɣ",
+    "h",
+    "ħ",
+    "ʒ",
+    "k",
+    "l",
+    "ɫ",
+    "m",
+    "n",
+    "ŋ",
+    "p",
+    "q",
+    "ɾ",
+    "r",
+    "s",
+    "ʃ",
+    "t",
+    "v",
+    "w",
+    "x",
+    "j",
+    "z",
+    "ɑː",
+    "eː",
+    "ɛ",
+    "iː",
+    "ɪ",
+    "oː",
+    "ʊ",
+    "uː"
+]
+
+kurdish_letters = [
+    "b",
+    "c",
+    "ç",
+    "d",
+    "f",
+    "g",
+    "x",
+    "h",
+    "h",
+    "j",
+    "k",
+    "l",
+    "l",
+    "m",
+    "n",
+    "ng",
+    "p",
+    "q",
+    "r",
+    "r",
+    "s",
+    "ş",
+    "t",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "a",
+    "ê",
+    "e",
+    "î",
+    "i",
+    "o",
+    "u",
+    "û"
+]
+
 
 def _clear_text(text, delimiter=""):
     kurdish_letters = "ABCÇDEÊFGHIÎJKLMNOPQRSŞTUÛVWXYZabcçdeêfghiîjklmnopqrsştuûvwxyz |0123456789\n"
-    reg = "[^"+kurdish_letters+"]+"
+    reg = "[^" + kurdish_letters + "]+"
     text = re.sub(reg, '*', text).rstrip()
     return delimiter.join(text.split('*'))
 
 
 def _prepare_text(text):
-    text = re.sub(' +', ' ', text.replace(',', '*').replace('.', '*').replace('!', '*').replace('?', '*').replace('\n', '*').replace(':', '*'))
+    text = re.sub(' +', ' ', text.replace(',', '*').replace('.', '*').replace('!', '*').replace('?', '*').replace('\n',
+                                                                                                                  '*').replace(
+        ':', '*'))
     terms_list = list(filter(None, text.split('*')))
     terms_list = list(map(_strip_spaces, terms_list))
     terms_list = list(filter(None, terms_list))
@@ -29,9 +123,8 @@ def process_text(text):
 
 
 def extract_numbers(text):
-    numbers = re.sub("[^0-9]", ' ', text)
-    numbers = ' '.join(numbers.split())
-    return numbers.split(' ')
+    numbers = re.findall(r"[-+]?\d*\.\d+|[-+]?\d*/\d+|\d+",  text)
+    return numbers
 
 
 def convert(number):
@@ -291,83 +384,106 @@ def _get_joint():
     return ' û '
 
 
-kurdish_ipa = [
-    "b",
-    "dʒ",
-    "tʃ",
-    "d",
-    "f",
-    "ɡ",
-    "ɣ",
-    "h",
-    "ħ",
-    "ʒ",
-    "k",
-    "l",
-    "ɫ",
-    "m",
-    "n",
-    "ŋ",
-    "p",
-    "q",
-    "ɾ",
-    "r",
-    "s",
-    "ʃ",
-    "t",
-    "v",
-    "w",
-    "x",
-    "j",
-    "z",
-    "ɑː",
-    "eː",
-    "ɛ",
-    "iː",
-    "ɪ",
-    "oː",
-    "ʊ",
-    "uː"
-]
+def get_ordinal(number):
+    number_text = convert(number)
+    number_text = number_text.strip()
+    last_letter = number_text[len(number_text) - 1]
+    if last_letter in kurdish_vowels:
+        return number_text + 'yemîn'
+    else:
+        return number_text + 'emîn'
 
-kurdish_letters = [
-    "b",
-    "c",
-    "ç",
-    "d",
-    "f",
-    "g",
-    "x",
-    "h",
-    "h",
-    "j",
-    "k",
-    "l",
-    "l",
-    "m",
-    "n",
-    "ng",
-    "p",
-    "q",
-    "r",
-    "r",
-    "s",
-    "ş",
-    "t",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
-    "a",
-    "ê",
-    "e",
-    "î",
-    "i",
-    "o",
-    "u",
-    "û"
-]
+
+def get_fraction(number):
+    if '/' not in number:
+        raise TypeError('It should be in number/number format, e.g.: 3/4')
+
+    sign = ''
+    if number[0] == '-':
+        sign = 'negatîf'
+        number = number[1:]
+
+    number_parts = number.split('/')
+    numerator = int(number_parts[0].strip())
+    denominator = int(number_parts[1].strip())
+    numerator_text = convert(numerator)
+
+    denominator_text = convert(denominator)
+    denominator_text_with_an = denominator_text + 'an'
+    if denominator_text[len(denominator_text) - 1] in kurdish_vowels:
+        denominator_text_with_an = denominator_text + 'yan'
+
+    if numerator > denominator:
+        if len(sign.strip()) > 0:
+            return sign + ' ' + numerator_text + ' ' + 'belavî' + ' ' + denominator_text_with_an
+        else:
+            return numerator_text + ' ' + 'belavî' + ' ' + denominator_text_with_an
+
+    elif numerator == 1 and denominator == 2:
+        if len(sign.strip()) > 0:
+            return sign + ' ' + 'nîv'
+        else:
+            return 'nîv'
+
+    elif numerator == 1 and denominator == 4:
+        if len(sign.strip()) > 0:
+            return sign + ' ' + 'çarîk'
+        else:
+            return 'çarîk'
+
+    else:
+        if len(sign.strip()) > 0:
+            return sign + ' ' + 'ji' + ' ' + denominator_text_with_an + ' ' + numerator_text
+        else:
+            return 'ji' + ' ' + denominator_text_with_an + ' ' + numerator_text
+
+
+def get_higher_ten_power(number):
+    if number == 1 or number == 0:
+        return 10
+    else:
+        return round(10 ** math.ceil(math.log10(number)))
+
+
+def get_decimal(number, in_complex_form):
+    if '.' not in number:
+        raise TypeError('It should be in number.number format, e.g.: 3.4')
+
+    sign = ''
+    if number[0] == '-':
+        sign = 'negatîf'
+        number = number[1:]
+
+    number_parts = number.split('.')
+    whole_number = int(number_parts[0].strip())
+    num_of_leading_zeros = sum(1 for _ in itertools.takewhile('0'.__eq__, number_parts[1].strip()))
+    fractional_part = int(number_parts[1].strip())
+
+    if not in_complex_form or len(number_parts[1].strip()) > 9:
+        if len(sign.strip()) > 0:
+            return sign + ' ' + convert(whole_number) + ' ' \
+                   + 'nûqte' \
+                   + ' ' + 'sifir '*num_of_leading_zeros + convert(fractional_part)
+        else:
+            return convert(whole_number) + ' ' + 'nûqte' \
+                   + ' ' + 'sifir '*num_of_leading_zeros + convert(fractional_part)
+
+    else:
+        higher_power_of_ten = convert(get_higher_ten_power(fractional_part))
+        if num_of_leading_zeros > 0:
+            higher_power_of_ten = convert(get_higher_ten_power(fractional_part *int('1'+'0'*num_of_leading_zeros)))
+        if higher_power_of_ten[len(higher_power_of_ten) - 1] in kurdish_vowels:
+            higher_power_of_ten = higher_power_of_ten + 'yan'
+        else:
+            higher_power_of_ten = higher_power_of_ten + 'an'
+        if len(sign.strip()) > 0:
+            return sign + ' ' + convert(whole_number) + ' ' \
+                   + 'û' \
+                   + ' ' + 'ji' + ' ' + higher_power_of_ten + '' + ' ' + convert(fractional_part)
+        else:
+            return convert(whole_number) + ' ' \
+                   + 'û' \
+                   + ' ' + 'ji' + ' ' + higher_power_of_ten + '' + ' ' + convert(fractional_part)
 
 
 def convert_ipa_word(word):
@@ -382,9 +498,15 @@ def convert_ipa_word(word):
 
     # Replace numbers
     numbers = extract_numbers(word)
+    print(numbers)
     for number in numbers:
-        if number.isdigit():
-            word = word.replace(str(number), convert(number))
+        if '/' in str(number):
+            word = word.replace(str(number), get_fraction(number))
+        elif '.' in str(number):
+            word = word.replace(str(number), get_decimal(number, True)) # Use False if want simple format
+        else:
+            if number.isdigit():
+                word = word.replace(str(number), convert(number))
 
     first_possibility = word
     second_possibility = word
@@ -415,6 +537,7 @@ def convert_ipa_word(word):
 
     return {'word': word, 'first_ipa': first_possibility, 'second_ipa': second_possibility, 'reasons': reasons}
 
+print(get_fraction('-0001/0003'))
 
 def convert_ipa_text(text):
     terms_text = process_text(text)
@@ -455,4 +578,3 @@ def get_ipa(text):
 
 def translate_text(text):
     return get_ipa(text)['resulted_ipa']
-
