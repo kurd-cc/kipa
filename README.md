@@ -56,6 +56,7 @@ negative_fraction = kipa.get_fraction('-14/22')
 negative_complex_decimal = kipa.get_decimal('-1.00067', True)
 negaive_weird_decimal = kipa.get_decimal('-00000000000001.000000000000000067', True)
 negative_weird_fraction = kipa.get_fraction('-0001/0003')
+negative_fraction_with_decimals = kipa.get_fraction('-000.9999/0009.999')
 ```
 ```text
 sêsed û heştê û du hezar û çarsed û çil û du
@@ -69,6 +70,7 @@ negatîf ji bîst û duan çardeh
 negatîf yek û ji sed hezaran şêst û heft
 negatîf yek nûqte sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir sifir şêst û heft
 negatîf ji sêyan yek
+negatîf ji neh nûqte nehsed û nod û nehan sifir nûqte neh hezar û nehsed û nod û ne
 ```
 
 <br>

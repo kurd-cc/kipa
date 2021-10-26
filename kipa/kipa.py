@@ -94,16 +94,14 @@ kurdish_letters = [
 
 
 def _clear_text(text, delimiter=""):
-    kurdish_letters = "ABCÇDEÊFGHIÎJKLMNOPQRSŞTUÛVWXYZabcçdeêfghiîjklmnopqrsştuûvwxyz |0123456789\n"
-    reg = "[^" + kurdish_letters + "]+"
+    reg = "[^ABCÇDEÊFGHIÎJKLMNOPQRSŞTUÛVWXYZabcçdeêfghiîjklmnopqrsştuûvwxyz |0123456789\n]+"
     text = re.sub(reg, '*', text).rstrip()
     return delimiter.join(text.split('*'))
 
 
 def _prepare_text(text):
-    text = re.sub(' +', ' ', text.replace(',', '*').replace('.', '*').replace('!', '*').replace('?', '*').replace('\n',
-                                                                                                                  '*').replace(
-        ':', '*'))
+    text = re.sub(' +', ' ',
+                  text.replace(',', '*').replace('. ', '*').replace('!', '*').replace('?', '*').replace('\n', '*').replace(':', '*'))
     terms_list = list(filter(None, text.split('*')))
     terms_list = list(map(_strip_spaces, terms_list))
     terms_list = list(filter(None, terms_list))
@@ -123,7 +121,7 @@ def process_text(text):
 
 
 def extract_numbers(text):
-    numbers = re.findall(r"[-+]?\d*\.\d+|[-+]?\d*/\d+|\d+",  text)
+    numbers = re.findall(r"[-+]?\d*\.?\d+(?:/\d*\.?\d+)?", text)
     return numbers
 
 
@@ -394,9 +392,26 @@ def get_ordinal(number):
         return number_text + 'emîn'
 
 
+def get_weird_number(text):
+    all_numbers = re.split('[./]', text)
+    all_numbers = [i for i in all_numbers if i]
+    text = text.replace('/', ' belavî ').replace('.', ' nûqte ')
+    for number in all_numbers:
+        if all_numbers.index(number) != 0 and all_numbers.index(number) != len(all_numbers) - 1:
+            text = text.replace(' ' + number + ' ', ' ' + convert(number) + ' ')
+        elif all_numbers.index(number) == 0:
+            text = text.replace(number + ' ', convert(number) + ' ')
+        elif all_numbers.index(number) == len(all_numbers) - 1:
+            text = text.replace(' ' + number, ' ' + convert(number))
+    return text.strip()
+
+
 def get_fraction(number):
     if '/' not in number:
         raise TypeError('It should be in number/number format, e.g.: 3/4')
+
+    if len(number.split('/')) > 2:
+        return get_weird_number(number)
 
     sign = ''
     if number[0] == '-':
@@ -404,14 +419,43 @@ def get_fraction(number):
         number = number[1:]
 
     number_parts = number.split('/')
-    numerator = int(number_parts[0].strip())
-    denominator = int(number_parts[1].strip())
-    numerator_text = convert(numerator)
+    second_part = number_parts[1].strip()
+    first_part = number_parts[0].strip()
+    if first_part[0] == '.':
+        first_part = '0' + first_part
+    if second_part[0] == '.':
+        second_part = '0' + second_part
 
-    denominator_text = convert(denominator)
-    denominator_text_with_an = denominator_text + 'an'
+    is_denominator_decimal = False
+    denominator = float(second_part)
+    if '.' in second_part and int(second_part.split('.')[1]) != 0:
+        denominator_text = get_decimal(second_part, False)
+        is_denominator_decimal = True
+    else:
+        denominator_text = convert(int(denominator))
+
+    if len(first_part) == 0:  # for example if there is 1/1/1 we will have /1
+        return 'belavî' + ' ' + denominator_text
+
+    numerator = float(first_part)
+    if '.' in first_part and int(first_part.split('.')[1]) != 0:
+        numerator_text = get_decimal(first_part, False)
+    else:
+        numerator_text = convert(int(numerator))
+
+    if not is_denominator_decimal:
+        denominator_text_with_an = denominator_text + 'an'
+    else:
+        denominator_text_with_an = denominator_text
+
     if denominator_text[len(denominator_text) - 1] in kurdish_vowels:
         denominator_text_with_an = denominator_text + 'yan'
+
+    if '.' in number_parts[0].strip() and '.' in number_parts[0].strip():
+        if len(sign.strip()) > 0:
+            return sign + ' ' + numerator_text + ' ' + 'belavî' + ' ' + denominator_text_with_an
+        else:
+            return numerator_text + ' ' + 'belavî' + ' ' + denominator_text_with_an
 
     if numerator > denominator:
         if len(sign.strip()) > 0:
@@ -447,12 +491,18 @@ def get_higher_ten_power(number):
 
 def get_decimal(number, in_complex_form):
     if '.' not in number:
-        raise TypeError('It should be in number.number format, e.g.: 3.4')
+        raise TypeError('It should be in number.number format, e.g.: 3.4 when the provided number was ' + number)
+
+    if len(number.split('.')) > 2:
+        return get_weird_number(number)
 
     sign = ''
     if number[0] == '-':
         sign = 'negatîf'
         number = number[1:]
+
+    if number[0] == '.':
+        number = '0' + number
 
     number_parts = number.split('.')
     whole_number = int(number_parts[0].strip())
@@ -463,15 +513,15 @@ def get_decimal(number, in_complex_form):
         if len(sign.strip()) > 0:
             return sign + ' ' + convert(whole_number) + ' ' \
                    + 'nûqte' \
-                   + ' ' + 'sifir '*num_of_leading_zeros + convert(fractional_part)
+                   + ' ' + 'sifir ' * num_of_leading_zeros + convert(fractional_part)
         else:
             return convert(whole_number) + ' ' + 'nûqte' \
-                   + ' ' + 'sifir '*num_of_leading_zeros + convert(fractional_part)
+                   + ' ' + 'sifir ' * num_of_leading_zeros + convert(fractional_part)
 
     else:
         higher_power_of_ten = convert(get_higher_ten_power(fractional_part))
         if num_of_leading_zeros > 0:
-            higher_power_of_ten = convert(get_higher_ten_power(fractional_part *int('1'+'0'*num_of_leading_zeros)))
+            higher_power_of_ten = convert(get_higher_ten_power(fractional_part * int('1' + '0' * num_of_leading_zeros)))
         if higher_power_of_ten[len(higher_power_of_ten) - 1] in kurdish_vowels:
             higher_power_of_ten = higher_power_of_ten + 'yan'
         else:
@@ -490,20 +540,19 @@ def convert_ipa_word(word):
     # To lower case always
     word = word.lower()
     try:
-        ipa = kwiki.get_sounds(word)['sounds'][0]['ipa'].replace('/', '').strip()
-        return {word: word, 'first_ipa': ipa, 'second_ipa': '', 'reasons': []}
+        ipa = kwiki.get_sounds(word)['sounds'][0]['ipa'].replace('/', '').replace('[', '').replace(']', '').strip()
+        return {word: word, 'first_ipa': ipa, 'second_ipa': '', 'reasons': ['The sound has been found in Wikiferheng']}
     except Exception as ex:
         pass
     reasons = []
 
     # Replace numbers
     numbers = extract_numbers(word)
-    print(numbers)
     for number in numbers:
         if '/' in str(number):
             word = word.replace(str(number), get_fraction(number))
         elif '.' in str(number):
-            word = word.replace(str(number), get_decimal(number, True)) # Use False if want simple format
+            word = word.replace(str(number), get_decimal(number, True))  # Use False if want simple format
         else:
             if number.isdigit():
                 word = word.replace(str(number), convert(number))
@@ -524,6 +573,9 @@ def convert_ipa_word(word):
     for letter in word:
         if letter == 'ŋ' or letter == ' ' or letter == '|':
             continue
+        elif letter not in kurdish_letters:
+            reasons.append('Not a Kurdish letter')
+            return {'word': word, 'first_ipa': '', 'second_ipa': '', 'reasons': reasons}
         elif letter == 'h' or letter == 'l' or letter == 'r':
             indices = [i for i, x in enumerate(kurdish_letters) if x == letter]
             second_possibility = second_possibility.replace(letter, kurdish_ipa[indices[1]])
@@ -537,7 +589,6 @@ def convert_ipa_word(word):
 
     return {'word': word, 'first_ipa': first_possibility, 'second_ipa': second_possibility, 'reasons': reasons}
 
-print(get_fraction('-0001/0003'))
 
 def convert_ipa_text(text):
     terms_text = process_text(text)
