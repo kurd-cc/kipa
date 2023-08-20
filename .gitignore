@@ -2,3 +2,4 @@ venv/
 dist/
 KIPA.egg-info/
 build/
+kipa/__pycache__
